@@ -1,28 +1,36 @@
-on:
-jobs:
-
+# .github/workflows/ci.yml
 name: Maven + Selenium CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ "main", "master" ]
   pull_request:
+  workflow_dispatch:      # optional manual trigger
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: 21
           cache: maven
 
-      - run: google-chrome --version
+      - name: Install Chrome & ChromeDriver
+        uses: browser-actions/setup-chrome@v1
 
-      - env:
+      - name: Show browser versions (sanity check)
+        run: |
+          google-chrome --version
+          chromedriver --version
+
+      - name: Run Maven tests
+        env:
           MAVEN_OPTS: -Djava.net.preferIPv4Stack=true
         run: mvn -B clean test
